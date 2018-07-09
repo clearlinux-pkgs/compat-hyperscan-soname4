@@ -4,7 +4,7 @@
 #
 Name     : compat-hyperscan-soname4
 Version  : 4.7.0
-Release  : 1
+Release  : 2
 URL      : https://github.com/intel/hyperscan/archive/v4.7.0.tar.gz
 Source0  : https://github.com/intel/hyperscan/archive/v4.7.0.tar.gz
 Summary  : Intel(R) Hyperscan Library
@@ -71,7 +71,7 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C
-export SOURCE_DATE_EPOCH=1531148431
+export SOURCE_DATE_EPOCH=1531148703
 mkdir clr-build
 pushd clr-build
 cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS:BOOL=ON -DLIB_INSTALL_DIR:PATH=/usr/lib64 -DCMAKE_AR=/usr/bin/gcc-ar -DLIB_SUFFIX=64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
@@ -79,7 +79,7 @@ make  %{?_smp_mflags}
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1531148431
+export SOURCE_DATE_EPOCH=1531148703
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/doc/compat-hyperscan-soname4
 cp LICENSE %{buildroot}/usr/share/doc/compat-hyperscan-soname4/LICENSE
@@ -93,20 +93,20 @@ popd
 
 %files dev
 %defattr(-,root,root,-)
-/usr/include/hs/hs.h
-/usr/include/hs/hs_common.h
-/usr/include/hs/hs_compile.h
-/usr/include/hs/hs_runtime.h
-/usr/lib64/libhs.so
-/usr/lib64/libhs_runtime.so
-/usr/lib64/pkgconfig/libhs.pc
+%exclude /usr/include/hs/hs.h
+%exclude /usr/include/hs/hs_common.h
+%exclude /usr/include/hs/hs_compile.h
+%exclude /usr/include/hs/hs_runtime.h
+%exclude /usr/lib64/libhs.so
+%exclude /usr/lib64/libhs_runtime.so
+%exclude /usr/lib64/pkgconfig/libhs.pc
 
 %files doc
 %defattr(0644,root,root,0755)
-/usr/share/doc/hyperscan/examples/README.md
-/usr/share/doc/hyperscan/examples/patbench.cc
-/usr/share/doc/hyperscan/examples/pcapscan.cc
-/usr/share/doc/hyperscan/examples/simplegrep.c
+%exclude /usr/share/doc/hyperscan/examples/README.md
+%exclude /usr/share/doc/hyperscan/examples/patbench.cc
+%exclude /usr/share/doc/hyperscan/examples/pcapscan.cc
+%exclude /usr/share/doc/hyperscan/examples/simplegrep.c
 
 %files lib
 %defattr(-,root,root,-)
@@ -117,5 +117,5 @@ popd
 
 %files license
 %defattr(-,root,root,-)
-/usr/share/doc/compat-hyperscan-soname4/COPYING
-/usr/share/doc/compat-hyperscan-soname4/LICENSE
+%exclude /usr/share/doc/compat-hyperscan-soname4/COPYING
+%exclude /usr/share/doc/compat-hyperscan-soname4/LICENSE
