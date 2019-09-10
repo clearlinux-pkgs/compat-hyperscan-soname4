@@ -1,0 +1,70 @@
+From 2347108e22001bb20133cea154aedee2f83c2251 Mon Sep 17 00:00:00 2001
+From: William Douglas <william.douglas@intel.com>
+Date: Mon, 9 Sep 2019 12:03:19 -0700
+Subject: [PATCH] Update pcre version check
+
+---
+ CMakeLists.txt   |  2 ++
+ cmake/pcre.cmake | 15 +++++++--------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 56f17c5..3210f3b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -191,6 +191,8 @@ else()
+         set (EXEC_ARGS ${CC_ARG1} -c -Q --help=target -march=native -mtune=native)
+         execute_process(COMMAND ${CMAKE_C_COMPILER} ${EXEC_ARGS}
+             OUTPUT_VARIABLE _GCC_OUTPUT)
++        string(FIND "${_GCC_OUTPUT}" "Known" POS)
++        string(SUBSTRING "${_GCC_OUTPUT}" 0 ${POS} _GCC_OUTPUT)
+         string(REGEX REPLACE ".*march=[ \t]*([^ \n]*)[ \n].*" "\\1"
+             GNUCC_ARCH "${_GCC_OUTPUT}")
+ 
+diff --git a/cmake/pcre.cmake b/cmake/pcre.cmake
+index acad45b..e0acda5 100644
+--- a/cmake/pcre.cmake
++++ b/cmake/pcre.cmake
+@@ -27,7 +27,7 @@ if (PCRE_BUILD_SOURCE)
+ 
+     # first, check version number
+     CHECK_C_SOURCE_COMPILES("#include <pcre.h.generic>
+-    #if PCRE_MAJOR != ${PCRE_REQUIRED_MAJOR_VERSION} || PCRE_MINOR != ${PCRE_REQUIRED_MINOR_VERSION}
++    #if PCRE_MAJOR != ${PCRE_REQUIRED_MAJOR_VERSION} || PCRE_MINOR < ${PCRE_REQUIRED_MINOR_VERSION}
+     #error Incorrect pcre version
+     #endif
+     main() {}" CORRECT_PCRE_VERSION)
+@@ -35,10 +35,10 @@ if (PCRE_BUILD_SOURCE)
+ 
+     if (NOT CORRECT_PCRE_VERSION)
+         unset(CORRECT_PCRE_VERSION CACHE)
+-        message(STATUS "Incorrect version of pcre - version ${PCRE_REQUIRED_VERSION} is required")
++        message(STATUS "Incorrect version of pcre - version ${PCRE_REQUIRED_VERSION} or above is required")
+         return ()
+     else()
+-        message(STATUS "PCRE version ${PCRE_REQUIRED_VERSION} - building from source.")
++        message(STATUS "PCRE version ${PCRE_REQUIRED_VERSION} or above - building from source.")
+     endif()
+ 
+     # PCRE compile options
+@@ -52,13 +52,12 @@ if (PCRE_BUILD_SOURCE)
+ else ()
+     # pkgconf should save us
+     find_package(PkgConfig)
+-    pkg_check_modules(PCRE libpcre=${PCRE_REQUIRED_VERSION})
++    pkg_check_modules(PCRE libpcre>=${PCRE_REQUIRED_VERSION})
+     if (PCRE_FOUND)
+-        message(STATUS "PCRE version ${PCRE_REQUIRED_VERSION}")
++        set(CORRECT_PCRE_VERSION TRUE)
++        message(STATUS "PCRE version ${PCRE_REQUIRED_VERSION} or above")
+     else ()
+-        message(STATUS "PCRE version ${PCRE_REQUIRED_VERSION} not found")
++        message(STATUS "PCRE version ${PCRE_REQUIRED_VERSION} or above not found")
+         return ()
+     endif ()
+ endif (PCRE_BUILD_SOURCE)
+-
+-set (PCRE_CHECKED TRUE PARENT_SCOPE)
+-- 
+2.22.0
+

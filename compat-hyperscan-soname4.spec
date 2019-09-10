@@ -4,23 +4,30 @@
 #
 Name     : compat-hyperscan-soname4
 Version  : 4.7.0
-Release  : 4
+Release  : 5
 URL      : https://github.com/intel/hyperscan/archive/v4.7.0.tar.gz
 Source0  : https://github.com/intel/hyperscan/archive/v4.7.0.tar.gz
 Summary  : Intel(R) Hyperscan Library
 Group    : Development/Tools
 License  : BSD-3-Clause Intel
-Requires: compat-hyperscan-soname4-lib
-Requires: compat-hyperscan-soname4-license
+Requires: compat-hyperscan-soname4-lib = %{version}-%{release}
+Requires: compat-hyperscan-soname4-license = %{version}-%{release}
 BuildRequires : Sphinx
 BuildRequires : boost-dev
-BuildRequires : cmake
+BuildRequires : buildreq-cmake
 BuildRequires : doxygen
+BuildRequires : glibc-dev
+BuildRequires : libpcap-dev
+BuildRequires : pkg-config
 BuildRequires : pkgconfig(libpcre)
 BuildRequires : pkgconfig(sqlite3)
+BuildRequires : python3
 BuildRequires : python3-dev
 BuildRequires : ragel
-BuildRequires : sqlite-autoconf-dev
+# Suppress generation of debuginfo
+%global debug_package %{nil}
+Patch1: 0001-Update-pcre-version-check.patch
+Patch2: 0002-Fixup-distance-symbol-resolution.patch
 
 %description
 # Hyperscan
@@ -28,28 +35,10 @@ Hyperscan is a high-performance multiple regex matching library. It follows the
 regular expression syntax of the commonly-used libpcre library, but is a
 standalone library with its own C API.
 
-%package dev
-Summary: dev components for the compat-hyperscan-soname4 package.
-Group: Development
-Requires: compat-hyperscan-soname4-lib
-Provides: compat-hyperscan-soname4-devel
-
-%description dev
-dev components for the compat-hyperscan-soname4 package.
-
-
-%package doc
-Summary: doc components for the compat-hyperscan-soname4 package.
-Group: Documentation
-
-%description doc
-doc components for the compat-hyperscan-soname4 package.
-
-
 %package lib
 Summary: lib components for the compat-hyperscan-soname4 package.
 Group: Libraries
-Requires: compat-hyperscan-soname4-license
+Requires: compat-hyperscan-soname4-license = %{version}-%{release}
 
 %description lib
 lib components for the compat-hyperscan-soname4 package.
@@ -65,48 +54,50 @@ license components for the compat-hyperscan-soname4 package.
 
 %prep
 %setup -q -n hyperscan-4.7.0
+%patch1 -p1
+%patch2 -p1
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
-export LANG=C
-export SOURCE_DATE_EPOCH=1531148703
-mkdir clr-build
+export LANG=C.UTF-8
+export SOURCE_DATE_EPOCH=1568156373
+mkdir -p clr-build
 pushd clr-build
-cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS:BOOL=ON -DLIB_INSTALL_DIR:PATH=/usr/lib64 -DCMAKE_AR=/usr/bin/gcc-ar -DLIB_SUFFIX=64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
-make  %{?_smp_mflags}
+export GCC_IGNORE_WERROR=1
+export CFLAGS="$CFLAGS -fno-lto "
+export FCFLAGS="$CFLAGS -fno-lto "
+export FFLAGS="$CFLAGS -fno-lto "
+export CXXFLAGS="$CXXFLAGS -fno-lto "
+%cmake ..
+make  %{?_smp_mflags} VERBOSE=1
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1531148703
+export SOURCE_DATE_EPOCH=1568156373
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/share/doc/compat-hyperscan-soname4
-cp LICENSE %{buildroot}/usr/share/doc/compat-hyperscan-soname4/LICENSE
-cp COPYING %{buildroot}/usr/share/doc/compat-hyperscan-soname4/COPYING
+mkdir -p %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4
+cp COPYING %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4/COPYING
+cp LICENSE %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4/LICENSE
 pushd clr-build
 %make_install
 popd
+## Remove excluded files
+rm -f %{buildroot}/usr/include/hs/hs.h
+rm -f %{buildroot}/usr/include/hs/hs_common.h
+rm -f %{buildroot}/usr/include/hs/hs_compile.h
+rm -f %{buildroot}/usr/include/hs/hs_runtime.h
+rm -f %{buildroot}/usr/lib64/libhs.so
+rm -f %{buildroot}/usr/lib64/libhs_runtime.so
+rm -f %{buildroot}/usr/lib64/pkgconfig/libhs.pc
+rm -f %{buildroot}/usr/share/doc/hyperscan/examples/README.md
+rm -f %{buildroot}/usr/share/doc/hyperscan/examples/patbench.cc
+rm -f %{buildroot}/usr/share/doc/hyperscan/examples/pcapscan.cc
+rm -f %{buildroot}/usr/share/doc/hyperscan/examples/simplegrep.c
 
 %files
 %defattr(-,root,root,-)
-
-%files dev
-%defattr(-,root,root,-)
-%exclude /usr/include/hs/hs.h
-%exclude /usr/include/hs/hs_common.h
-%exclude /usr/include/hs/hs_compile.h
-%exclude /usr/include/hs/hs_runtime.h
-%exclude /usr/lib64/libhs.so
-%exclude /usr/lib64/libhs_runtime.so
-%exclude /usr/lib64/pkgconfig/libhs.pc
-
-%files doc
-%defattr(0644,root,root,0755)
-%exclude /usr/share/doc/hyperscan/examples/README.md
-%exclude /usr/share/doc/hyperscan/examples/patbench.cc
-%exclude /usr/share/doc/hyperscan/examples/pcapscan.cc
-%exclude /usr/share/doc/hyperscan/examples/simplegrep.c
 
 %files lib
 %defattr(-,root,root,-)
@@ -116,6 +107,6 @@ popd
 /usr/lib64/libhs_runtime.so.4.7.0
 
 %files license
-%defattr(-,root,root,-)
-%exclude /usr/share/doc/compat-hyperscan-soname4/COPYING
-%exclude /usr/share/doc/compat-hyperscan-soname4/LICENSE
+%defattr(0644,root,root,0755)
+/usr/share/package-licenses/compat-hyperscan-soname4/COPYING
+/usr/share/package-licenses/compat-hyperscan-soname4/LICENSE
