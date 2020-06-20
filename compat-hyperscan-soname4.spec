@@ -4,7 +4,7 @@
 #
 Name     : compat-hyperscan-soname4
 Version  : 4.7.0
-Release  : 8
+Release  : 9
 URL      : https://github.com/intel/hyperscan/archive/v4.7.0.tar.gz
 Source0  : https://github.com/intel/hyperscan/archive/v4.7.0.tar.gz
 Summary  : Intel(R) Hyperscan Library
@@ -54,6 +54,7 @@ license components for the compat-hyperscan-soname4 package.
 
 %prep
 %setup -q -n hyperscan-4.7.0
+cd %{_builddir}/hyperscan-4.7.0
 %patch1 -p1
 %patch2 -p1
 
@@ -62,24 +63,24 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1568156373
+export SOURCE_DATE_EPOCH=1592616922
 mkdir -p clr-build
 pushd clr-build
 export GCC_IGNORE_WERROR=1
 export CFLAGS="$CFLAGS -fno-lto "
-export FCFLAGS="$CFLAGS -fno-lto "
-export FFLAGS="$CFLAGS -fno-lto "
+export FCFLAGS="$FFLAGS -fno-lto "
+export FFLAGS="$FFLAGS -fno-lto "
 export CXXFLAGS="$CXXFLAGS -fno-lto "
 %cmake ..
-make  %{?_smp_mflags} VERBOSE=1
+make  %{?_smp_mflags}  VERBOSE=1
 popd
 
 %install
-export SOURCE_DATE_EPOCH=1568156373
+export SOURCE_DATE_EPOCH=1592616922
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4
-cp COPYING %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4/COPYING
-cp LICENSE %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4/LICENSE
+cp %{_builddir}/hyperscan-4.7.0/COPYING %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4/460136879250bc39dbc8be7799af9c079527808f
+cp %{_builddir}/hyperscan-4.7.0/LICENSE %{buildroot}/usr/share/package-licenses/compat-hyperscan-soname4/e9e53a0b2358d3fd707a717d971d01ef87bffd0e
 pushd clr-build
 %make_install
 popd
@@ -108,5 +109,5 @@ rm -f %{buildroot}/usr/share/doc/hyperscan/examples/simplegrep.c
 
 %files license
 %defattr(0644,root,root,0755)
-/usr/share/package-licenses/compat-hyperscan-soname4/COPYING
-/usr/share/package-licenses/compat-hyperscan-soname4/LICENSE
+/usr/share/package-licenses/compat-hyperscan-soname4/460136879250bc39dbc8be7799af9c079527808f
+/usr/share/package-licenses/compat-hyperscan-soname4/e9e53a0b2358d3fd707a717d971d01ef87bffd0e
